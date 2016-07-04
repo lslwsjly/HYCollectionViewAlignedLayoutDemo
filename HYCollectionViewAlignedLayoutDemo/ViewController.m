@@ -52,7 +52,6 @@ static NSString * const kCellIdentifier = @"CellIdentifier";
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellIdentifier forIndexPath:indexPath];
-    
     cell.contentView.layer.borderColor = [UIColor greenColor].CGColor;
     cell.contentView.layer.borderWidth = 2;
     
