@@ -30,7 +30,7 @@
     NSInteger left = -1, right = -1;//记录每一行最左和最右
     CGFloat width = 0;
     CGFloat lastx = self.collectionView.frame.size.width;
-    NSArray *originalAttributes = [super layoutAttributesForElementsInRect:rect];
+    NSArray *originalAttributes = [[NSArray alloc]initWithArray:[super layoutAttributesForElementsInRect:rect] copyItems:YES];;
     NSMutableArray *updatedAttributes = [NSMutableArray array];
     for (NSInteger i = 0; i < [originalAttributes count]; i ++) {
         UICollectionViewLayoutAttributes *attributes = originalAttributes[i];
