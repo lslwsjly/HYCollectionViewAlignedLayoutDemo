@@ -36,16 +36,17 @@
         UICollectionViewLayoutAttributes *attributes = originalAttributes[i];
         if (!attributes.representedElementKind) {
             NSInteger section = attributes.indexPath.section;
+//            NSLog(@"%f, %f, %f", attributes.frame.origin.x, attributes.frame.origin.y, attributes.frame.size.width);
             if(attributes.frame.origin.x < lastx) {
                 if(left != -1) {
                    //处理上一行的内容
                     [updatedAttributes addObjectsFromArray:[self getAttributesForLeft:left right:right offset:[self calOffset:section width:width] originalAttributes:originalAttributes]];
                 }
                 left = i;
-                lastx = attributes.frame.origin.x;
+                lastx = attributes.frame.origin.x + [self evaluatedMinimumInteritemSpacingForSectionAtIndex:section];
                 width = [self evaluatedSectionInsetForItemAtIndex:section].left + [self evaluatedSectionInsetForItemAtIndex:section].right - [self evaluatedMinimumInteritemSpacingForSectionAtIndex:section];
             }
-            lastx = attributes.frame.origin.x;
+            lastx = attributes.frame.origin.x + attributes.frame.size.width + [self evaluatedMinimumInteritemSpacingForSectionAtIndex:section];
             right = i;
             width += attributes.frame.size.width + [self evaluatedMinimumInteritemSpacingForSectionAtIndex:section];
             if(i == [originalAttributes count] - 1) {
