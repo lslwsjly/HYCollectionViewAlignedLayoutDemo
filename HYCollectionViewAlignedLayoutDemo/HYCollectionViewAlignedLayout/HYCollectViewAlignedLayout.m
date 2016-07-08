@@ -11,7 +11,6 @@
 
 @interface HYCollectViewAlignedLayout ()
 
-
 @end
 
 @implementation HYCollectViewAlignedLayout
@@ -26,21 +25,22 @@
 
 #pragma mark - UICollectionViewLayout
 
+
 - (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect {
     NSInteger left = -1, right = -1;//记录每一行最左和最右
     CGFloat width = 0;
+    NSInteger section = 0;
     CGFloat lastx = self.collectionView.frame.size.width;
-    NSArray *originalAttributes = [[NSArray alloc]initWithArray:[super layoutAttributesForElementsInRect:rect] copyItems:YES];;
-    NSMutableArray *updatedAttributes = [NSMutableArray array];
-    for (NSInteger i = 0; i < [originalAttributes count]; i ++) {
-        UICollectionViewLayoutAttributes *attributes = originalAttributes[i];
+    NSMutableArray *updatedAttributes = [[NSMutableArray alloc]initWithArray:[super layoutAttributesForElementsInRect:rect] copyItems:YES];
+    
+    for (NSInteger i = 0; i < [updatedAttributes count]; i ++) {
+        UICollectionViewLayoutAttributes *attributes = updatedAttributes[i];
         if (!attributes.representedElementKind) {
-            NSInteger section = attributes.indexPath.section;
-//            NSLog(@"%f, %f, %f", attributes.frame.origin.x, attributes.frame.origin.y, attributes.frame.size.width);
+            section = attributes.indexPath.section;
             if(attributes.frame.origin.x < lastx) {
                 if(left != -1) {
                    //处理上一行的内容
-                    [updatedAttributes addObjectsFromArray:[self getAttributesForLeft:left right:right offset:[self calOffset:section width:width] originalAttributes:originalAttributes]];
+                [self getAttributesForLeft:left right:right offset:[self calOffset:section width:width] originalAttributes:updatedAttributes];
                 }
                 left = i;
                 lastx = attributes.frame.origin.x + [self evaluatedMinimumInteritemSpacingForSectionAtIndex:section];
@@ -49,11 +49,12 @@
             lastx = attributes.frame.origin.x + attributes.frame.size.width + [self evaluatedMinimumInteritemSpacingForSectionAtIndex:section];
             right = i;
             width += attributes.frame.size.width + [self evaluatedMinimumInteritemSpacingForSectionAtIndex:section];
-            if(i == [originalAttributes count] - 1) {
-                //最后一行处理
-                [updatedAttributes addObjectsFromArray:[self getAttributesForLeft:left right:right offset:[self calOffset:section width:width] originalAttributes:originalAttributes]];
-            }
+            
         }
+    }
+    //确保最后一行更新
+    if (left != -1) {
+        [self getAttributesForLeft:left right:right offset:[self calOffset:section width:width] originalAttributes:updatedAttributes];
     }
     
     return updatedAttributes;
@@ -76,24 +77,20 @@
     return offset;
 }
 
-- (NSArray *)getAttributesForLeft:(NSInteger)left right:(NSInteger) right offset:(CGFloat)offset originalAttributes:(NSArray *)originalAttributes {
-    NSMutableArray *updatedAttributes = [NSMutableArray array];
+- (void)getAttributesForLeft:(NSInteger)left right:(NSInteger) right offset:(CGFloat)offset originalAttributes:(NSMutableArray *)updatedAttributes {
     CGFloat currentOffset = offset;
     for(NSInteger i = left; i <= right; i ++) {
         
-        UICollectionViewLayoutAttributes *attributes = originalAttributes[i];
+        UICollectionViewLayoutAttributes *attributes = updatedAttributes[i];
         CGRect frame = attributes.frame;
         frame.origin.x = currentOffset;
         attributes.frame = frame;
         currentOffset += frame.size.width + [self evaluatedMinimumInteritemSpacingForSectionAtIndex:attributes.indexPath.section];
-        [updatedAttributes addObject:attributes];
+        [updatedAttributes setObject:attributes atIndexedSubscript:i];
     }
-    return updatedAttributes;
 }
 
-
-- (CGFloat)evaluatedMinimumInteritemSpacingForSectionAtIndex:(NSInteger)sectionIndex
-{
+- (CGFloat)evaluatedMinimumInteritemSpacingForSectionAtIndex:(NSInteger)sectionIndex {
     if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:layout:minimumInteritemSpacingForSectionAtIndex:)]) {
         
         return [(id)self.collectionView.delegate collectionView:self.collectionView layout:self minimumInteritemSpacingForSectionAtIndex:sectionIndex];
@@ -102,8 +99,7 @@
     }
 }
 
-- (UIEdgeInsets)evaluatedSectionInsetForItemAtIndex:(NSInteger)index
-{
+- (UIEdgeInsets)evaluatedSectionInsetForItemAtIndex:(NSInteger)index {
     if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:layout:insetForSectionAtIndex:)]) {
         
         return [(id)self.collectionView.delegate collectionView:self.collectionView layout:self insetForSectionAtIndex:index];
